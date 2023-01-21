@@ -7,10 +7,12 @@ Effect::Effect(ID3D11Device* pDevice, const std::wstring& path)
 	m_pEffect = LoadEffect(pDevice, path);
 	if (m_pEffect)
 	{
-		m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
+		m_pPointTechnique = m_pEffect->GetTechniqueByName("PointFilterTechnique");
+		m_pLinearTechnique = m_pEffect->GetTechniqueByName("LinearFilterTechnique");
+		m_pAnisotropicTechnique = m_pEffect->GetTechniqueByName("AnisotropicFilterTechnique");
 	}
 	
-	if (!m_pTechnique->IsValid())
+	if (!m_pPointTechnique->IsValid() || !m_pLinearTechnique->IsValid() || !m_pAnisotropicTechnique->IsValid())
 	{
 		std::wcout << L"Technique not valid\n";
 	}
@@ -26,6 +28,8 @@ Effect::Effect(ID3D11Device* pDevice, const std::wstring& path)
 	{
 		std::wcout << L"Diffuse map variable not valid\n";
 	}
+
+	m_CurrentFilterMode = FilterMode::Point;
 }
 
 Effect::~Effect()
@@ -36,8 +40,14 @@ Effect::~Effect()
 	if (m_pMatWorldViewProj)
 		m_pMatWorldViewProj->Release();
 
-	if (m_pTechnique)
-		m_pTechnique->Release();
+	if (m_pAnisotropicTechnique)
+		m_pAnisotropicTechnique->Release();
+
+	if (m_pLinearTechnique)
+		m_pLinearTechnique->Release();
+
+	if (m_pPointTechnique)
+		m_pPointTechnique->Release();
 
 	if (m_pEffect)
 		m_pEffect->Release();
@@ -55,6 +65,40 @@ void Effect::SetDiffuseMap(Texture* pDiffuseTexture)
 		m_pDiffuseMapVar->SetResource(pDiffuseTexture->GetRV());
 		
 	}
+}
+
+void Effect::CycleFilterMode()
+{
+	switch (m_CurrentFilterMode)
+	{
+	case FilterMode::Point:
+		m_CurrentFilterMode = FilterMode::Linear;
+		break;
+	case FilterMode::Linear:
+		m_CurrentFilterMode = FilterMode::Anisotropic;
+		break;
+	case FilterMode::Anisotropic:
+		m_CurrentFilterMode = FilterMode::Point;
+		break;
+	}
+}
+
+ID3DX11EffectTechnique* Effect::GetTechnique() const
+{
+	switch (m_CurrentFilterMode)
+	{
+	case FilterMode::Point:
+		return m_pPointTechnique;
+		break;
+	case FilterMode::Linear:
+		return m_pLinearTechnique;
+		break;
+	case FilterMode::Anisotropic:
+		return m_pAnisotropicTechnique;
+		break;
+	}
+
+	return nullptr;
 }
 
 static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& assetFile)

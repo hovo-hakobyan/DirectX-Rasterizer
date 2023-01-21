@@ -122,6 +122,11 @@ namespace dae {
 		m_pSwapChain->Present(0, 0);
 	}
 
+	void Renderer::CycleFilterMode()
+	{
+		m_pMesh->CycleFilterMode();
+	}
+
 	HRESULT Renderer::InitializeDirectX()
 	{
 		//1. Create Device & DeviceContext

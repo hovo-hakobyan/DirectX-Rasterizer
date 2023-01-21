@@ -125,3 +125,9 @@ void Mesh::UpdateWorldViewProjMat(const Camera& camera)
 	const Matrix worldViewProjection{ m_WorldMatrix * camera.invViewMatrix * camera.projectionMatrix };
 	m_pEffect->SetWorldViewProjMatrix(worldViewProjection);
 }
+
+void Mesh::CycleFilterMode()
+{
+	m_pEffect->CycleFilterMode();
+	m_pTechniqueLocalPointer = m_pEffect->GetTechnique();
+}

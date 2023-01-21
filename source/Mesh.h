@@ -12,6 +12,8 @@ public:
 
 	void Render(ID3D11DeviceContext* pDeviceContext);
 	void UpdateWorldViewProjMat(const Camera& camera);
+	
+	void CycleFilterMode();
 
 private:
 	Effect* m_pEffect;
