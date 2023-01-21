@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "Structs.h"
 #include "Mesh.h"
+#include "Texture.h"
 
 namespace dae {
 
@@ -25,19 +26,42 @@ namespace dae {
 
 		std::vector<Vertex_In> vertices
 		{
-			{{.0f,.5,.5f},{1.f,0.f,0.f}},
-			{{.5f,-.5f,.5f},{0.f,0.f,1.f}},
-			{{-.5f,-.5f,.5f},{0.f,1.f,0.f}},
+			{{-3, 3, -2},{0,0}},
+			{{0,3,-2},{0.5f, 0}},
+			{{3,3,-2},{1,0}},
+			{{-3, 0, -2},{0, 0.5f}},
+			{{0,0,-2},{0.5f, 0.5f}},
+			{{3,0,-2},{1, 0.5f}},
+			{{-3,-3,-2},{0,1}},
+			{{0,-3,-2},{0.5f, 1}},
+			{{3,-3,-2},{1,1}}
 		};
 
-		std::vector<uint32_t> indices{ 0,1,2 };
+		std::vector<uint32_t> indices
+		{
+			3,0,1,		1,4,3,		4,1,2,
+			2,5,4,		6,3,4,		4,7,6,
+			7,4,5,		5,8,7 
 
-		m_pMesh = new Mesh{ m_pDevice,vertices,indices };
+		};
+
+		
+		m_pCheckersPattern = new Texture{ m_pDevice,"Resources/uv_grid_2.png" };
+		m_pMesh = new Mesh{ m_pDevice,vertices,indices,m_pCheckersPattern };
+
+		m_Camera.Initialize(static_cast<float>(m_Width) / m_Height, 45.f, { .0f,.0f,-10.f });
+
 
 	}
 
 	Renderer::~Renderer()
 	{
+		if (m_pCheckersPattern)
+		{
+			delete m_pCheckersPattern;
+			m_pCheckersPattern = nullptr;
+		}
+
 		if (m_pMesh)
 		{
 			delete m_pMesh;
@@ -76,7 +100,8 @@ namespace dae {
 
 	void Renderer::Update(const Timer* pTimer)
 	{
-
+		m_Camera.Update(pTimer);
+		m_pMesh->UpdateWorldViewProjMat(m_Camera);
 	}
 
 

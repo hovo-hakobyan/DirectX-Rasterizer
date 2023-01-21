@@ -1,9 +1,10 @@
 #include "pch.h"
 #include "Mesh.h"
 #include "Effect.h"
+#include "Texture.h"
 
 
-Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_In>& vertices, const std::vector<uint32_t>& indices)
+Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_In>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture)
 {
 	//Create effect
 	m_pEffect = new Effect{ pDevice,L"Resources/PosCol3D.fx" };
@@ -11,10 +12,11 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_In>& vertices, const 
 	{
 		m_pEffectLocalPointer = m_pEffect->GetEffect();
 		m_pTechniqueLocalPointer = m_pEffect->GetTechnique();
+
 	}
 
 	//Create Vertex Layout
-	static constexpr uint32_t numElements{ 2 };
+	static constexpr uint32_t numElements{ 2};
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[numElements]{};
 
 	vertexDesc[0].SemanticName = "POSITION";
@@ -22,8 +24,8 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_In>& vertices, const 
 	vertexDesc[0].AlignedByteOffset = 0;
 	vertexDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-	vertexDesc[1].SemanticName = "COLOR";
-	vertexDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vertexDesc[1].SemanticName = "TEXCOORD";
+	vertexDesc[1].Format = DXGI_FORMAT_R32G32_FLOAT;
 	vertexDesc[1].AlignedByteOffset = 12;
 	vertexDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
@@ -69,6 +71,8 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_In>& vertices, const 
 
 	if (FAILED(result1))
 		assert(false);
+
+	m_pEffect->SetDiffuseMap(pTexture);
 }
 
 Mesh::~Mesh()
@@ -114,4 +118,10 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext)
 		pDeviceContext->DrawIndexed(m_NumIndices, 0, 0);
 	}
 
+}
+
+void Mesh::UpdateWorldViewProjMat(const Camera& camera)
+{
+	const Matrix worldViewProjection{ m_WorldMatrix * camera.invViewMatrix * camera.projectionMatrix };
+	m_pEffect->SetWorldViewProjMatrix(worldViewProjection);
 }
